@@ -1,71 +1,82 @@
-var interval = 5000
-var time = interval;
+function displayBGGData(id, row) {
+    fetch('https://www.boardgamegeek.com/xmlapi2/thing?stats=1&id='+id)
+    .then(response => response.text())
+        .then(body => (new window.DOMParser()).parseFromString(body, "text/xml"))
+        .then(data => {
+            var game = data.querySelector('item');
+            var stats = game.querySelector('statistics');
 
-$('#main-content > table > tbody > tr:nth-child(3) > td > table > tbody > tr > td > div > div.briefcitDetail > div.briefcitDetailMain > h2').each(function(index) { 
-	var cleanText = $(this).text().replace('[game]', '')	 
-	var cleanTitle = cleanText.split('/')[0]
-    var header = $(this);
-    if (cleanText == $(this).text()) return;
-    
-    setTimeout(function() {
-        $.get('https://www.boardgamegeek.com/xmlapi2/search?query='+cleanTitle, function(response) {
-            var total = $(response).find('items').attr('total');
-            if (total == 0) return;
-            var id = $($(response).find('item')[0]).attr('id');
-            $.get('https://www.boardgamegeek.com/xmlapi2/thing?stats=1&id='+id, function(response) {
-                var gameStats = $($(response).find('item')[0])
-                var thumb = $(gameStats.find('thumbnail')[0]).text()
-                var description = $(gameStats.find('description')[0]).text()
-                var minPlayers = $(gameStats.find('minplayers')[0]).attr('value')
-                var maxPlayers = $(gameStats.find('maxplayers')[0]).attr('value')
-                var playtime = $(gameStats.find('playingtime')[0]).attr('value')
-                var stats = $(gameStats.find('statistics'))
-                var rank = $(stats.find('rank')[0]).attr('value')
-                var rating = $(stats.find('average')[0]).attr('value')
+            var thumbnail = game.querySelector('thumbnail').innerHTML;
+            var name = game.querySelector('name').getAttribute('value');
+            var description = game.querySelector('description').innerHTML;
+            var minplayers = game.querySelector('minplayers').getAttribute('value');
+            var maxplayers = game.querySelector('maxplayers').getAttribute('value');
+            var playingtime = game.querySelector('playingtime').getAttribute('value');
+            var mechanics = []
+            var categories = []
+            var links = game.querySelectorAll('link').forEach(link => {
+                var linktype = link.getAttribute('type')
+                if (linktype == 'boardgamecategory')
+                    categories.push(link.getAttribute('value'));
+                if (linktype == 'boardgamemechanic')
+                    mechanics.push(link.getAttribute('value'));
+            }
+            );
 
-                var hthumb = '<img src="'+thumb+'" alt="BGG Scraped Thumbnail for ' + cleanTitle + '" />';
-                var hplayers = '<strong>Players:</strong> ' + minPlayers + "-" + maxPlayers;
-                var hplay = '<strong>Avg. Playtime:</strong> ' + playtime;
-                var hstats = '<strong>Avg. Rating: </strong>' + rating + '<strong>BGG Rank:</strong> ' + rank;
-                header.append('<p>'+hthumb+' '+hplayers+'\t'+hplay+'\t'+hstats)
-            });
-        });
-    }, time)
-    time += interval;
-});
+            var rank = stats.querySelector('rank').getAttribute('value');
+            var rating = stats.querySelector('average').getAttribute('value');
 
-// JQUERY LESS
+            var hthumb = document.createElement('img');
+            hthumb.setAttribute("src", thumbnail);
+            hthumb.setAttribute("alt", "BGG Scraped Thumbnail for " + name);
+            var el = []
+            var l = 0;
+            l = el.push(document.createElement('li'));
+            el[l-1].innerHTML = "<strong>Players: </strong>" + minplayers + "-" + maxplayers;
+            l = el.push(document.createElement('li'));
+            el[l-1].innerHTML = '<strong>Avg. Playtime:</strong> ' + playingtime;
+            l = el.push(document.createElement('li'));
+            el[l-1].innerHTML = '<strong>Avg. Rating: </strong>' + rating;
+            l = el.push(document.createElement('li'));
+            el[l-1].innerHTML = '<strong>BGG Rank:</strong> ' + rank;
+            l = el.push(document.createElement('li'));
+            el[l-1].innerHTML = '<strong>Mechanics:</strong> ' + mechanics;
+            l = el.push(document.createElement('li'));
+            el[l-1].innerHTML = '<strong>Categories:</strong> ' + categories;            
+            l = el.push(document.createElement('li'));
+            el[l-1].innerHTML = '<strong>BGG Description:</strong> ' + description;
 
-function getBGGData(title, row) {
-    fetch('https://www.boardgamegeek.com/xmlapi2/search?query=castle+panic')
-        .then(res => res.text())
-        .then(str => (new window.DOMParser()).parseFromString(str, "text/xml"))
-        .then(data => console.log(data))
+            var contain = document.createElement('ul');
 
-    // fetch('https://www.boardgamegeek.com/xmlapi2/search?query='+title).then(function(reponse) {
-    //     var total = $(response).find('items').attr('total');
-    //     if (total == 0) return;
-    //     var id = $($(response).find('item')[0]).attr('id');
-    //     fetch('https://www.boardgamegeek.com/xmlapi2/thing?stats=1&id='+id).then(function(response) {
-    //         var gameStats = $($(response).find('item')[0])
-    //         var thumb = $(gameStats.find('thumbnail')[0]).text()
-    //         var description = $(gameStats.find('description')[0]).text()
-    //         var minPlayers = $(gameStats.find('minplayers')[0]).attr('value')
-    //         var maxPlayers = $(gameStats.find('maxplayers')[0]).attr('value')
-    //         var playtime = $(gameStats.find('playingtime')[0]).attr('value')
-    //         var stats = $(gameStats.find('statistics'))
-    //         var rank = $(stats.find('rank')[0]).attr('value')
-    //         var rating = $(stats.find('average')[0]).attr('value')
+            hthumb.style.display = "inline-block";
+            hthumb.style.marginRight = "10px";
+            hthumb.style.verticalAlign = "top";
 
-    //         var hthumb = '<img src="'+thumb+'" alt="BGG Scraped Thumbnail for ' + cleanTitle + '" />';
-    //         var hplayers = '<strong>Players:</strong> ' + minPlayers + "-" + maxPlayers;
-    //         var hplay = '<strong>Avg. Playtime:</strong> ' + playtime;
-    //         var hstats = '<strong>Avg. Rating: </strong>' + rating + '<strong>BGG Rank:</strong> ' + rank;
-    //         row.append('<p>'+hthumb+' '+hplayers+'\t'+hplay+'\t'+hstats)
-    //     });
-    // });
+            contain.style.display = "inline-block";
+            contain.style.verticalAlign = "middle";
+            contain.style.listStyle = "none";
+            contain.style.maxWidth = "70%";
+
+            el.forEach(element => contain.appendChild(element));
+            
+            row.appendChild(hthumb);
+            row.appendChild(contain);
+            return true
+        })
+        return true;
 }
 
+function getBGGData(title, row, again=false) {
+    fetch('https://www.boardgamegeek.com/xmlapi2/search?query='+title)
+        .then(res => res.text())
+        .then(str => (new window.DOMParser()).parseFromString(str, "text/xml"))
+        .then(data => data.querySelector('item').getAttribute("id"))
+        .catch(reason => false)
+        .then(id => displayBGGData(id, row))
+        .catch(reason => false)
+        .then(work => (!work && !again)? getBGGData(title.split(':')[0], row, true) : 0 )
+        ;
+}
 document.querySelectorAll('#main-content > table > tbody > tr:nth-child(3) > td > table > tbody > tr > td > div').forEach(
     function(row){
         var cleanText = row.querySelector('div.briefcitDetail > div.briefcitDetailMain > h2 > a').innerText.replace('[game]', '');
@@ -79,22 +90,3 @@ document.querySelectorAll('#main-content > table > tbody > tr:nth-child(3) > td 
         row.querySelector('div.briefcitLeft').appendChild(button);
     }
 );
-
-
-$.get('https://www.boardgamegeek.com/xmlapi2/search?query=Catan%20:%20cities%20&%20knights%20;%205-6%20player%20extension', function(response) {
-	var total = $(response).find('items').attr('total');
-    if (total == 0) return;
-    var id = $($(response).find('item')[0]).attr('id');
-    $.get('https://www.boardgamegeek.com/xmlapi2/thing?stats=1&id='+id, function(response) {
-        var gameStats = $($(response).find('item')[0])
-        var thumb = $(gameStats.find('thumbnail')[0]).text()
-        var description = $(gameStats.find('description')[0]).text()
-        var minPlayers = $(gameStats.find('minplayers')[0]).attr('value')
-        var maxPlayers = $(gameStats.find('maxplayers')[0]).attr('value')
-        var playtime = $(gameStats.find('playingtime')[0]).attr('value')
-        var stats = $(gameStats.find('statistics'))
-        var rank = $(stats.find('rank')[0]).attr('value')
-        var rating = $(stats.find('average')[0]).attr('value')
-        
-    });
-});
