@@ -1,5 +1,5 @@
 function displayBGGData(id, row) {
-    fetch('https://www.boardgamegeek.com/xmlapi2/thing?stats=1&id='+id)
+    return fetch('https://www.boardgamegeek.com/xmlapi2/thing?stats=1&id='+id)
     .then(response => response.text())
         .then(body => (new window.DOMParser()).parseFromString(body, "text/xml"))
         .then(data => {
@@ -63,7 +63,6 @@ function displayBGGData(id, row) {
             row.appendChild(contain);
             return true
         })
-        return true;
 }
 
 function getBGGData(title, row, again=false) {
