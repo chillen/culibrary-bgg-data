@@ -1,4 +1,15 @@
-function displayBGGData(id, row) {
+// ==UserScript==
+// @name         Carleton Library BGG Extender
+// @namespace    http://connorhillen.com
+// @version      0.1
+// @description  Add some BGG data to the Carleton library page on request.
+// @author       You
+// @match        http://catalogue.library.carleton.ca/*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    function displayBGGData(id, row) {
     return fetch('https://www.boardgamegeek.com/xmlapi2/thing?stats=1&id='+id)
     .then(response => response.text())
         .then(body => (new window.DOMParser()).parseFromString(body, "text/xml"))
@@ -12,10 +23,10 @@ function displayBGGData(id, row) {
             var minplayers = game.querySelector('minplayers').getAttribute('value');
             var maxplayers = game.querySelector('maxplayers').getAttribute('value');
             var playingtime = game.querySelector('playingtime').getAttribute('value');
-            var mechanics = []
-            var categories = []
+            var mechanics = [];
+            var categories = [];
             var links = game.querySelectorAll('link').forEach(link => {
-                var linktype = link.getAttribute('type')
+                var linktype = link.getAttribute('type');
                 if (linktype == 'boardgamecategory')
                     categories.push(link.getAttribute('value'));
                 if (linktype == 'boardgamemechanic')
@@ -29,7 +40,7 @@ function displayBGGData(id, row) {
             var hthumb = document.createElement('img');
             hthumb.setAttribute("src", thumbnail);
             hthumb.setAttribute("alt", "BGG Scraped Thumbnail for " + name);
-            var el = []
+            var el = [];
             var l = 0;
             l = el.push(document.createElement('li'));
             el[l-1].innerHTML = "<strong>Players: </strong>" + minplayers + "-" + maxplayers;
@@ -42,7 +53,7 @@ function displayBGGData(id, row) {
             l = el.push(document.createElement('li'));
             el[l-1].innerHTML = '<strong>Mechanics:</strong> ' + mechanics;
             l = el.push(document.createElement('li'));
-            el[l-1].innerHTML = '<strong>Categories:</strong> ' + categories;            
+            el[l-1].innerHTML = '<strong>Categories:</strong> ' + categories;
             l = el.push(document.createElement('li'));
             el[l-1].innerHTML = '<strong>BGG Description:</strong> ' + description;
 
@@ -58,11 +69,11 @@ function displayBGGData(id, row) {
             contain.style.maxWidth = "70%";
 
             el.forEach(element => contain.appendChild(element));
-            
+
             row.appendChild(hthumb);
             row.appendChild(contain);
-            return true
-        })
+            return true;
+        });
 }
 
 function getBGGData(title, row, again=false) {
@@ -79,13 +90,14 @@ function getBGGData(title, row, again=false) {
 document.querySelectorAll('#main-content > table > tbody > tr:nth-child(3) > td > table > tbody > tr > td > div').forEach(
     function(row){
         var cleanText = row.querySelector('div.briefcitDetail > div.briefcitDetailMain > h2 > a').innerText.replace('[game]', '');
-        var cleanTitle = cleanText.split('/')[0]
+        var cleanTitle = cleanText.split('/')[0];
         if (cleanText == row.querySelector('div.briefcitDetail > div.briefcitDetailMain > h2 > a').innerText) return;
         var button = document.createElement("button");
         button.innerHTML = "Load BGG Data";
         button.addEventListener("click", function() {
             getBGGData(cleanTitle, row);
-        })
+        });
         row.querySelector('div.briefcitLeft').appendChild(button);
     }
 );
+})();
